@@ -3,6 +3,7 @@ import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import WorkIcon from "@mui/icons-material/Work";
 import {
   Account,
   AccountPreview,
@@ -27,6 +28,11 @@ const NAVIGATION = [
     segment: "projects",
     title: "Projects",
     icon: <DashboardIcon />,
+  },
+  {
+    segment: "workflow",
+    title: "Workflow",
+    icon: <WorkIcon />,
   },
 ];
 

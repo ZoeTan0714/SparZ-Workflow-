@@ -7,8 +7,8 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import dayjs from "dayjs";
 
-import KanbanBoard from "../components/KanbanBoard";
-import TaskModal from "../components/TaskModal";
+import KanbanBoard from "../components/Task/KanbanBoard";
+import TaskModal from "../components/Task/TaskModal";
 import { getProjectDetails } from "../services/projectSpaceService";
 import api from "../services/api";
 

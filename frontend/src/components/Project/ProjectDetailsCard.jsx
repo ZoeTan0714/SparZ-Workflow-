@@ -15,15 +15,15 @@ import {
   Icon,
 } from "@mui/material";
 import { useState, preventDefault, useEffect, useMemo } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   queryUserByName,
   getProjectDetails,
   editProject,
-} from "../services/projectSpaceService";
+} from "../../services/projectSpaceService";
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
-import UserAvatar from "./UserAvatar";
+import UserAvatar from "../UserAvatar";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";

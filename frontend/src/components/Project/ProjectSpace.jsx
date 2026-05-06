@@ -14,14 +14,14 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
-import * as workspaceService from "../services/projectSpaceService";
-import UserAvatar from "./UserAvatar";
+import * as workspaceService from "../../services/projectSpaceService";
+import UserAvatar from "../UserAvatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import CreateProjectForm from "./CreateProjectForm";
 import EditIcon from "@mui/icons-material/Edit";
 import EditProjectForm from "./EditProjectForm";
-import TaskPage from "../pages/TaskPage";
+import TaskPage from "../../pages/TaskPage";
 import { useNavigate } from "react-router-dom";
 
 const ProjectSpace = () => {

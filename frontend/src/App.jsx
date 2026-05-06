@@ -4,10 +4,11 @@ import { AuthProvider } from "./context/AuthContext";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
 import SignOut from "./pages/SignOut";
-import ProjectSpace from "./components/ProjectSpace";
+import ProjectSpace from "./components/Project/ProjectSpace";
 import Dashboard from "./components/Dashboard";
 import { theme } from "./styles/theme";
 import TaskPage from "./pages/TaskPage";
+import Workflow from "./pages/Workflow";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/" element={<Dashboard />}>
             <Route path="/projects" element={<ProjectSpace />} />
             <Route path="/tasks/:projectId" element={<TaskPage />} />
+            <Route path="/workflow" element={<Workflow />} />
           </Route>
         </Routes>
       </AuthProvider>

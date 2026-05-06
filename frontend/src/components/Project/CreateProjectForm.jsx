@@ -19,8 +19,8 @@ import { debounce } from "lodash";
 import {
   createProject,
   queryUserByName,
-} from "../services/projectSpaceService";
-import { useAuth } from "../context/AuthContext";
+} from "../../services/projectSpaceService";
+import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const CreateProjectForm = ({ onClose }) => {

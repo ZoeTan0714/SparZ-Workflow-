@@ -1,7 +1,7 @@
 import { useDraggable } from "@dnd-kit/core";
 import { alpha, useTheme } from "@mui/material/styles";
 
-import UserAvatar from "./UserAvatar";
+import UserAvatar from "../UserAvatar";
 
 function useTaskCardShellStyle({ marginBottom = "12px" } = {}) {
   const theme = useTheme();
