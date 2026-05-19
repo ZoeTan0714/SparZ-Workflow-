@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Menu, MenuItem } from '@mui/material';
 import WorkflowCanvas from '../components/workflow/WorkflowCanvas';
-import { fetchWorkflows, fetchWorkflowById, createWorkflow as createWorkflowAPI, saveWorkflow } from '../services/workflowService';
+import { fetchWorkflows, fetchWorkflowById, createWorkflow as createWorkflowAPI, saveWorkflow, deleteWorkflow } from '../services/workflowService';
 
 function Workflow() {
   const [workflows, setWorkflows] = useState([
@@ -18,6 +18,12 @@ function Workflow() {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [contextWorkflowId, setContextWorkflowId] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [renameWorkflowId, setRenameWorkflowId] = useState(null);
+  const [renameWorkflowName, setRenameWorkflowName] = useState('');
 
   const createWorkflow = () => {
     const newWorkflow = {
@@ -35,6 +41,97 @@ function Workflow() {
     setIsCreateDialogOpen(false);
   };
 
+  const handleWorkflowTabContextMenu = (event, workflowId) => {
+    event.preventDefault();
+    setContextWorkflowId(workflowId);
+    setContextMenu(
+      contextMenu === null
+        ? { mouseX: event.clientX - 2, mouseY: event.clientY - 4 }
+        : null
+    );
+  };
+
+  const handleCloseContextMenu = () => setContextMenu(null);
+
+  const handleOpenDeleteDialog = () => {
+    setIsDeleteDialogOpen(true);
+    handleCloseContextMenu();
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setContextWorkflowId(null);
+  };
+
+  const confirmDeleteWorkflow = async () => {
+    if (!contextWorkflowId) return;
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(contextWorkflowId);
+
+    try {
+      if (isObjectId) {
+        await deleteWorkflow(contextWorkflowId);
+      }
+
+      setWorkflows((prev) => prev.filter((wf) => wf.id !== contextWorkflowId));
+      setWorkflowData((prev) => {
+        const next = { ...prev };
+        delete next[contextWorkflowId];
+        return next;
+      });
+
+      if (selectedWorkflowId === contextWorkflowId) {
+        const remaining = workflows.filter((wf) => wf.id !== contextWorkflowId);
+        setSelectedWorkflowId(remaining.length ? remaining[0].id : '');
+      }
+    } catch (err) {
+      console.error('Delete workflow failed', err);
+      alert('Failed to delete workflow.');
+    } finally {
+      handleCloseDeleteDialog();
+    }
+  };
+
+  const handleWorkflowTabDoubleClick = (workflowId) => {
+    const workflow = workflows.find((wf) => wf.id === workflowId);
+    if (!workflow) return;
+
+    setRenameWorkflowId(workflowId);
+    setRenameWorkflowName(workflow.name || '');
+    setIsRenameDialogOpen(true);
+  };
+
+  const handleCloseRenameDialog = () => {
+    setIsRenameDialogOpen(false);
+    setRenameWorkflowId(null);
+    setRenameWorkflowName('');
+  };
+
+  const confirmRenameWorkflow = async () => {
+    if (!renameWorkflowId) return;
+    const updatedName = renameWorkflowName.trim() || 'Untitled Workflow';
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(renameWorkflowId);
+
+    setWorkflows((prev) => prev.map((wf) => (
+      wf.id === renameWorkflowId ? { ...wf, name: updatedName } : wf
+    )));
+
+    if (isObjectId) {
+      try {
+        const payload = {
+          name: updatedName,
+          nodes: workflowData[renameWorkflowId]?.nodes || [],
+          edges: workflowData[renameWorkflowId]?.edges || [],
+        };
+        await saveWorkflow(renameWorkflowId, payload);
+      } catch (err) {
+        console.error('Rename workflow failed', err);
+        alert('Failed to rename workflow.');
+      }
+    }
+
+    handleCloseRenameDialog();
+  };
+
   // load saved workflows from backend on mount
   React.useEffect(() => {
     let mounted = true;
@@ -45,7 +142,10 @@ function Workflow() {
         if (!mounted) return;
         if (saved.length) {
           setWorkflows(saved);
-          setSelectedWorkflowId((current) => current || saved[0].id);
+          setSelectedWorkflowId((current) => {
+            const currentExists = saved.some((wf) => wf.id === current);
+            return currentExists ? current : saved[0].id;
+          });
         }
       } catch (err) {
         console.error('Failed to fetch workflows', err);
@@ -134,6 +234,8 @@ function Workflow() {
               key={wf.id}
               variant={wf.id === selectedWorkflowId ? 'contained' : 'outlined'}
               onClick={() => setSelectedWorkflowId(wf.id)}
+              onContextMenu={(event) => handleWorkflowTabContextMenu(event, wf.id)}
+              onDoubleClick={() => handleWorkflowTabDoubleClick(wf.id)}
             >
               {wf.name}
             </Button>
@@ -148,6 +250,49 @@ function Workflow() {
           + Create Workflow
         </Button>
       </Box>
+
+      <Menu
+        open={contextMenu !== null}
+        onClose={handleCloseContextMenu}
+        anchorReference="anchorPosition"
+        anchorPosition={
+          contextMenu !== null
+            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+            : undefined
+        }
+      >
+        <MenuItem onClick={handleOpenDeleteDialog}>Delete workflow</MenuItem>
+      </Menu>
+
+      <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
+        <DialogTitle>Delete Workflow</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this workflow?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+          <Button color="error" onClick={confirmDeleteWorkflow}>Delete</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isRenameDialogOpen} onClose={handleCloseRenameDialog}>
+        <DialogTitle>Rename Workflow</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Workflow Name"
+            fullWidth
+            variant="standard"
+            value={renameWorkflowName}
+            onChange={(e) => setRenameWorkflowName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseRenameDialog}>Cancel</Button>
+          <Button onClick={confirmRenameWorkflow}>Save</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* canvas */}
       <WorkflowCanvas

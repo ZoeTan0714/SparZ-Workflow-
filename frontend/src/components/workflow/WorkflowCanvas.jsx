@@ -22,8 +22,6 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
   const [nodes, setNodes, onNodesChange] = useNodesState(currentData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(currentData.edges);
 
-  const previousWorkflowId = useRef();
-
   const updateNodeData = useCallback((nodeId, newData) => {
     setNodes((nodes) => nodes.map((n) => n.id === nodeId ? { ...n, data: newData, width: newData.width ?? n.width } : n));
   }, [setNodes]);
@@ -35,9 +33,6 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
 
   useEffect(() => {
     if (!workflowId) return;
-    if (previousWorkflowId.current === workflowId) {
-      return;
-    }
 
     const data = workflowData[workflowId] || { nodes: [], edges: [] };
     // ensure each node has a top-level width property (React Flow expects node.width)
@@ -52,7 +47,6 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
     }));
     setNodes(normalizedNodes);
     setEdges(data.edges || []);
-    previousWorkflowId.current = workflowId;
   }, [workflowId, workflowData, setEdges, setNodes, deleteNode, updateNodeData]);
 
   // Local node/edge changes are kept in canvas state until the user clicks Save.

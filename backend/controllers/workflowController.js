@@ -48,3 +48,14 @@ exports.updateWorkflow = async (req, res) => {
     res.status(500).json({ error: 'Unable to update workflow' });
   }
 };
+
+exports.deleteWorkflow = async (req, res) => {
+  try {
+    const workflow = await Workflow.findByIdAndDelete(req.params.id);
+    if (!workflow) return res.status(404).json({ error: 'Workflow not found' });
+    res.json({ message: 'Workflow deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Unable to delete workflow' });
+  }
+};

@@ -12,7 +12,7 @@ import {
   Link,
   Grid,
 } from "@mui/material";
-import forgeLogo from "../assets/FORGE.png";
+import forgeLogo from "../assets/sparz.png";
 import loginBg from "../assets/forge_login_background_img.png";
 
 export default function SignUp() {

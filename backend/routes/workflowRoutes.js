@@ -6,5 +6,6 @@ router.get('/', workflowController.getAllWorkflows);
 router.get('/:id', workflowController.getWorkflowById);
 router.post('/', workflowController.createWorkflow);
 router.patch('/:id', workflowController.updateWorkflow);
+router.delete('/:id', workflowController.deleteWorkflow);
 
 module.exports = router;

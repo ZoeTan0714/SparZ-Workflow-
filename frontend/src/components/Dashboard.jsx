@@ -15,7 +15,7 @@ import ListItemText from "@mui/material/ListItemText";
 import { useSession } from "@toolpad/core/useSession";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
-import forgeLogo from "../assets/FORGE.png";
+import forgeLogo from "../assets/sparz.png";
 import { theme } from "../styles/theme";
 import { useMemo, useState } from "react";
 
