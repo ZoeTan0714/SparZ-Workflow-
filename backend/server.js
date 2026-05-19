@@ -9,6 +9,7 @@ const Project = require("./models/project");
 const authRouter = require("./routes/auth-routes");
 const projectRouter = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
+const workflowRoutes = require("./routes/workflowRoutes");
 
 mongoose.connect(process.env.MONGODB_URI);
 
@@ -40,6 +41,7 @@ app.get("/test", (req, res) => {
 
 app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
+app.use('/api/workflows', workflowRoutes);
 
 app.listen(3000, () => {
   console.log("The express app is ready!");

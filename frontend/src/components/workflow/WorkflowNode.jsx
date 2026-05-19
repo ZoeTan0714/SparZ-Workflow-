@@ -1,69 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { Card, CardContent, TextField, Checkbox, FormControlLabel, Button } from '@mui/material';
 import { Handle, Position, NodeResizer } from 'reactflow';
 
 export default function WorkflowNode({ id, data }) {
-  const [title, setTitle] = useState(data.title);
-  const [description, setDescription] = useState(data.description);
-  const [width, setWidth] = useState(data.width || 280);
+  const width = data.width || 280;
 
-  const [hasTemplate, setHasTemplate] = useState(data.hasTemplate);
-  const [template, setTemplate] = useState(data.template);
+  const updateData = useCallback((changes) => {
+    if (!data.onUpdateData) return;
+    data.onUpdateData(id, { ...data, ...changes });
+  }, [data, id]);
 
-  const [hasURL, setHasURL] = useState(data.hasURL);
-  const [url, setUrl] = useState(data.url);
+  const shouldResize = useCallback((event, params) => params.direction[1] === 0, []);
 
   const copyTemplate = () => {
-    navigator.clipboard.writeText(template);
+    navigator.clipboard.writeText(data.template || '');
     alert('Copied!');
   };
 
   const openUrl = () => {
-    if (url) window.open(url, '_blank');
+    if (data.url) window.open(data.url, '_blank');
   };
 
   return (
-    <Card sx={{ width: width, p: 1 }}>
+      <Card sx={{ width: width, p: 1, boxSizing: 'border-box' }}>
       <NodeResizer
+        nodeId={id}
         minWidth={200}
         maxWidth={600}
-        onResize={(event, params) => {
-          setWidth(params.width);
-          if (data.onUpdateData) {
-            data.onUpdateData(id, { ...data, width: params.width });
-          }
-        }}
+        shouldResize={shouldResize}
+        lineStyle={{ opacity: 0 }}
+        handleStyle={{ opacity: 0 }}
+        onResize={(event, params) => updateData({ width: params.width })}
       />
       <Handle type="target" position={Position.Top} />
 
-      <CardContent>
-
-        {/* Title */}
+      <CardContent
+        onMouseDown={(event) => event.stopPropagation()}
+        onPointerDown={(event) => event.stopPropagation()}
+        onDoubleClick={(event) => event.stopPropagation()}
+      >
         <TextField
           label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={data.title || ''}
+          onChange={(e) => updateData({ title: e.target.value })}
           fullWidth
           className="nodrag"
+          inputProps={{ className: 'nodrag' }}
         />
 
-        {/* Description */}
         <TextField
           label="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          value={data.description || ''}
+          onChange={(e) => updateData({ description: e.target.value })}
           fullWidth
           multiline
           sx={{ mt: 1 }}
           className="nodrag"
+          inputProps={{ className: 'nodrag' }}
         />
 
-        {/* Template toggle */}
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasTemplate}
-              onChange={(e) => setHasTemplate(e.target.checked)}
+              checked={data.hasTemplate || false}
+              onChange={(e) => updateData({ hasTemplate: e.target.checked })}
               className="nodrag"
             />
           }
@@ -71,24 +71,24 @@ export default function WorkflowNode({ id, data }) {
           className="nodrag"
         />
 
-        {hasTemplate && (
+        {data.hasTemplate && (
           <TextField
             label="Template"
-            value={template}
-            onChange={(e) => setTemplate(e.target.value)}
+            value={data.template || ''}
+            onChange={(e) => updateData({ template: e.target.value })}
             fullWidth
             multiline
             sx={{ mt: 1 }}
             className="nodrag"
+            inputProps={{ className: 'nodrag' }}
           />
         )}
 
-        {/* URL toggle */}
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasURL}
-              onChange={(e) => setHasURL(e.target.checked)}
+              checked={data.hasURL || false}
+              onChange={(e) => updateData({ hasURL: e.target.checked })}
               className="nodrag"
             />
           }
@@ -96,36 +96,35 @@ export default function WorkflowNode({ id, data }) {
           className="nodrag"
         />
 
-        {hasURL && (
+        {data.hasURL && (
           <TextField
             label="URL"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            value={data.url || ''}
+            onChange={(e) => updateData({ url: e.target.value })}
             fullWidth
             sx={{ mt: 1 }}
             className="nodrag"
+            inputProps={{ className: 'nodrag' }}
           />
         )}
 
-        {/* actions */}
         <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-          {hasTemplate && (
+          {data.hasTemplate && (
             <Button size="small" onClick={copyTemplate} className="nodrag">
               Copy
             </Button>
           )}
 
-          {hasURL && (
+          {data.hasURL && (
             <Button size="small" onClick={openUrl} className="nodrag">
               View Doc
             </Button>
           )}
 
-          <Button size="small" color="error" onClick={() => data.onDelete(id)} className="nodrag">
+          <Button size="small" color="error" onClick={() => data.onDelete?.(id)} className="nodrag">
             Delete
           </Button>
         </div>
-
       </CardContent>
 
       <Handle type="source" position={Position.Bottom} />
