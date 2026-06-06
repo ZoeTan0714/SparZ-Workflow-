@@ -166,11 +166,22 @@ const editProject = async (req, res) => {
 const deleteProject = async (req, res) => {
   try {
     const projectId = req.params.projectId;
-    const deletedProject = await Project.findByIdAndDelete(projectId);
-    if (!deletedProject) {
+    const project = await Project.findById(projectId);
+
+    if (!project) {
       return res.status(404).json({ message: "Project not found." });
     }
-    res.status(200).send({ message: "Project deleted!" });
+
+    const userId = req.user.userId;
+    const isProjectLead = project.projectLead?.toString() === userId;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isAdmin && !isProjectLead) {
+      return res.status(403).json({ message: "Not authorized to delete this project." });
+    }
+
+    await Project.findByIdAndDelete(projectId);
+    res.status(200).json({ message: "Project deleted!" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

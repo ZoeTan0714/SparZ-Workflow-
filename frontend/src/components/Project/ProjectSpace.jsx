@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogActions,
   Stack,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
@@ -20,8 +21,9 @@ import AvatarGroup from "@mui/material/AvatarGroup";
 import { useAuth } from "../../context/AuthContext";
 import CreateProjectForm from "./CreateProjectForm";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditProjectForm from "./EditProjectForm";
-import TaskPage from "../../pages/TaskPage";
 import { useNavigate } from "react-router-dom";
 
 const ProjectSpace = () => {
@@ -35,6 +37,8 @@ const ProjectSpace = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [openTaskPage, setOpenTaskPage] = useState(false);
   const [openEditForm, setOpenEditForm] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [deleteProjectId, setDeleteProjectId] = useState(null);
 
   const fetchWorkspace = async () => {
     try {
@@ -68,6 +72,29 @@ const ProjectSpace = () => {
   useEffect(() => {
     fetchWorkspace();
   }, []);
+
+  const handleOpenDeleteDialog = (projectId, event) => {
+    event.stopPropagation();
+    setDeleteProjectId(projectId);
+    setOpenDeleteDialog(true);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteProjectId(null);
+    setOpenDeleteDialog(false);
+  };
+
+  const handleConfirmDeleteProject = async () => {
+    if (!deleteProjectId) return;
+    try {
+      await workspaceService.deleteProject(deleteProjectId);
+      setProjects((prev) => prev.filter((project) => project._id !== deleteProjectId));
+      handleCloseDeleteDialog();
+    } catch (err) {
+      console.error("Failed to delete project", err);
+      alert("Unable to delete project.");
+    }
+  };
 
   return (
     <>
@@ -134,8 +161,77 @@ const ProjectSpace = () => {
         {projects?.map((project, index) => {
           const isProjectLead = user && project?.projectLead?._id === user._id;
           const canEditProject = user?.role === "admin" || isProjectLead;
+          const canViewOnly = !canEditProject;
           return (
             <Card key={project._id} sx={{ position: "relative" }}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  zIndex: 2,
+                  display: "flex",
+                  gap: 0.5,
+                }}
+              >
+                {canEditProject ? (
+                  <>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        color: "primary.main",
+                        bgcolor: "background.paper",
+                        boxShadow: 1,
+                        "&:hover": {
+                          bgcolor: "primary.main",
+                          color: "white",
+                        },
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProjectId(project._id);
+                        setOpenEditForm(true);
+                      }}
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      sx={{
+                        color: "error.main",
+                        bgcolor: "background.paper",
+                        boxShadow: 1,
+                        "&:hover": {
+                          bgcolor: "error.main",
+                          color: "white",
+                        },
+                      }}
+                      onClick={(e) => handleOpenDeleteDialog(project._id, e)}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </>
+                ) : (
+                  <IconButton
+                    size="small"
+                    sx={{
+                      color: "text.secondary",
+                      bgcolor: "background.paper",
+                      boxShadow: 1,
+                      "&:hover": {
+                        bgcolor: "primary.main",
+                        color: "white",
+                      },
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/tasks/${project._id}`);
+                    }}
+                  >
+                    <VisibilityIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
               <CardActionArea
                 onClick={() => {
                   navigate(`/tasks/${project._id}`);
@@ -163,31 +259,6 @@ const ProjectSpace = () => {
                         {project.projectTitle}
                       </Typography>
                     </Box>
-                    {canEditProject && (
-                      <IconButton
-                        size="small"
-                        sx={{
-                          position: "absolute",
-                          top: 8,
-                          right: 8,
-                          zIndex: 2,
-                          color: "primary.main",
-                          bgcolor: "background.paper",
-                          boxShadow: 1,
-                          "&:hover": {
-                            bgcolor: "primary.main",
-                            color: "white",
-                          },
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedProjectId(project._id);
-                          setOpenEditForm(true);
-                        }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    )}
                   </Stack>
                   <Typography
                     variant="body2"
@@ -237,6 +308,26 @@ const ProjectSpace = () => {
               }}
             />
           </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={openDeleteDialog}
+          onClose={handleCloseDeleteDialog}
+          fullWidth
+          maxWidth="xs"
+        >
+          <DialogTitle>Confirm delete</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Are you sure you want to delete this project? This action cannot be undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+            <Button color="error" onClick={handleConfirmDeleteProject}>
+              Delete
+            </Button>
+          </DialogActions>
         </Dialog>
       </Box>
     </>

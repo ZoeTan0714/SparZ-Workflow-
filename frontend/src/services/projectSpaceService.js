@@ -26,6 +26,10 @@ const editProject = (projectId, projectData) => {
   return api.patch(`/projects/${projectId}/edit`, projectData);
 };
 
+const deleteProject = (projectId) => {
+  return api.delete(`/projects/${projectId}`);
+};
+
 //Get project's tasks
 const getProjectProgress = (projectId) => {
   return api.get(`/projects/${projectId}/progress`);
@@ -37,5 +41,6 @@ export {
   queryUserByName,
   getProjectDetails,
   editProject,
+  deleteProject,
   getProjectProgress,
 };

@@ -1,23 +1,18 @@
-import { Box, Stack, Typography, Avatar, Button, TextField, Divider } from "@mui/material";
+import { Box, Stack, Typography, Avatar, Button, TextField, Divider, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import WorkIcon from "@mui/icons-material/Work";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import {
-  Account,
-  AccountPreview,
-  AccountPopoverFooter,
-  SignOutButton,
-} from "@toolpad/core/Account";
+import { Account, AccountPreview } from "@toolpad/core/Account";
 import DividerMui from "@mui/material/Divider";
 import { useSession } from "@toolpad/core/useSession";
+import { useMemo, useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
 import forgeLogo from "../assets/sparz.png";
 import { theme } from "../styles/theme";
-import { useMemo, useState } from "react";
 import { updateProfile } from "../services/authService";
 
 const BASE_NAVIGATION = [
@@ -66,7 +61,8 @@ function AccountSidebarPreview(props) {
 }
 
 function SidebarFooterAccountPopover() {
-  const { user, token, login } = useAuth();
+  const { user, logout, login, token } = useAuth();
+  const navigate = useNavigate();
   const defaultFormData = useMemo(
     () => ({
       username: user?.username || "",
@@ -80,6 +76,12 @@ function SidebarFooterAccountPopover() {
   const [formData, setFormData] = useState(defaultFormData);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setFormData(defaultFormData);
+    setError("");
+  }, [defaultFormData]);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -112,6 +114,7 @@ function SidebarFooterAccountPopover() {
       const res = await updateProfile(payload);
       login(token, res.data.user);
       setFormData((prev) => ({ ...prev, password: "" }));
+      setIsProfileDialogOpen(false);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Unable to update profile.");
@@ -120,76 +123,106 @@ function SidebarFooterAccountPopover() {
     }
   };
 
-  const handleCancel = () => {
-    setFormData(defaultFormData);
-    setError("");
-  };
-
   if (!user) return null;
 
   return (
-    <Stack direction="column" sx={{ width: 320, p: 2, gap: 1 }}>
-      <Typography variant="subtitle2" fontWeight={700}>
-        Account settings
-      </Typography>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-        <Avatar src={formData.preview} sx={{ width: 56, height: 56 }}>
-          {!formData.preview && user.username?.[0]?.toUpperCase()}
-        </Avatar>
-        <Button component="label" size="small" variant="outlined">
-          Upload dp
-          <input hidden accept="image/*" type="file" onChange={handleFileChange} />
-        </Button>
-      </Box>
-      {error && (
-        <Typography variant="caption" color="error">
-          {error}
+    <>
+      <Stack direction="column" sx={{ width: 320, p: 2, gap: 1 }}>
+        <Typography variant="subtitle2" fontWeight={700}>
+          Account
         </Typography>
-      )}
-      <TextField
-        label="Username"
-        value={formData.username}
-        onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
-        fullWidth
-        size="small"
-      />
-      <TextField
-        label="Email"
-        type="email"
-        value={formData.email}
-        onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-        fullWidth
-        size="small"
-      />
-      <TextField
-        label="Password"
-        type="password"
-        helperText="Leave blank to keep current password"
-        value={formData.password}
-        onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-        fullWidth
-        size="small"
-      />
-      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
-        <Button size="small" onClick={handleCancel}>
-          Cancel
-        </Button>
-        <Button size="small" variant="contained" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save"}
-        </Button>
-      </Box>
-      <DividerMui />
-      <Stack direction="column" spacing={0.5}>
-        <Typography variant="body2">{user.username}</Typography>
-        <Typography variant="caption" color="text.secondary">
-          {user.email}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar src={formData.preview} sx={{ width: 56, height: 56 }}>
+            {!formData.preview && user.username?.[0]?.toUpperCase()}
+          </Avatar>
+          <Stack spacing={0.25}>
+            <Typography variant="body2">{user.username}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {user.email}
+            </Typography>
+          </Stack>
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+          <Button
+            fullWidth
+            size="small"
+            variant="outlined"
+            onClick={() => setIsProfileDialogOpen(true)}
+          >
+            Update Profile
+          </Button>
+          <Button
+            fullWidth
+            size="small"
+            variant="contained"
+            onClick={() => {
+              logout();
+              navigate("/signout");
+            }}
+          >
+            Logout
+          </Button>
+        </Box>
       </Stack>
-      <DividerMui />
-      <AccountPopoverFooter>
-        <SignOutButton />
-      </AccountPopoverFooter>
-    </Stack>
+
+      <Dialog
+        open={isProfileDialogOpen}
+        onClose={() => setIsProfileDialogOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Update Profile</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ py: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Avatar src={formData.preview} sx={{ width: 56, height: 56 }}>
+                {!formData.preview && user.username?.[0]?.toUpperCase()}
+              </Avatar>
+              <Button component="label" size="small" variant="outlined">
+                Upload avatar
+                <input hidden accept="image/*" type="file" onChange={handleFileChange} />
+              </Button>
+            </Box>
+            {error && (
+              <Typography variant="caption" color="error">
+                {error}
+              </Typography>
+            )}
+            <TextField
+              label="Username"
+              value={formData.username}
+              onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+              fullWidth
+              size="small"
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+              fullWidth
+              size="small"
+            />
+            <TextField
+              label="Password"
+              type="password"
+              helperText="Leave blank to keep current password"
+              value={formData.password}
+              onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+              fullWidth
+              size="small"
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsProfileDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
 

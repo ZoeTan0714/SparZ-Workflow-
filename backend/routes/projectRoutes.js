@@ -22,6 +22,6 @@ router.get("/:projectId", verifyToken, getProjectById);
 router.get("/:projectId/progress", verifyToken, getProjectProgress);
 router.get("/:projectId/members", verifyToken, getProjectMembers);
 router.patch("/:projectId/edit", verifyToken, requireRole("admin"), editProject);
-// router.delete("/:projectId", verifyToken, requireRole("admin"), deleteProject);
+router.delete("/:projectId", verifyToken, deleteProject);
 
 module.exports = router;

@@ -18,8 +18,7 @@ export default function TaskPage() {
   const [members, setMembers] = useState([]);
   const [project, setProject] = useState(null);
   const [open, setOpen] = useState(false);
-  const [selectedTask, setSelectedTask] =
-    useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
