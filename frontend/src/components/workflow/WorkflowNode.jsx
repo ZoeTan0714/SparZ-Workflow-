@@ -22,23 +22,24 @@ export default function WorkflowNode({ id, data }) {
   };
 
   return (
-      <Card sx={{ width: width, p: 1, boxSizing: 'border-box' }}>
-      <NodeResizer
-        nodeId={id}
-        minWidth={200}
-        maxWidth={600}
-        shouldResize={shouldResize}
-        lineStyle={{ opacity: 0 }}
-        handleStyle={{ opacity: 0 }}
-        onResize={(event, params) => updateData({ width: params.width })}
-      />
-      <Handle type="target" position={Position.Top} />
+    <div style={{ width, position: 'relative' }}>
+      <Card sx={{ width: '100%', p: 1, boxSizing: 'border-box' }}>
+        <NodeResizer
+          nodeId={id}
+          minWidth={200}
+          maxWidth={600}
+          shouldResize={shouldResize}
+          lineStyle={{ opacity: 0 }}
+          handleStyle={{ opacity: 0 }}
+          onResize={(event, params) => updateData({ width: params.width })}
+        />
+        <Handle type="target" position={Position.Top} />
 
-      <CardContent
-        onMouseDown={(event) => event.stopPropagation()}
-        onPointerDown={(event) => event.stopPropagation()}
-        onDoubleClick={(event) => event.stopPropagation()}
-      >
+        <CardContent
+          onMouseDown={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => event.stopPropagation()}
+        >
         <TextField
           label="Title"
           value={data.title || ''}
@@ -129,5 +130,6 @@ export default function WorkflowNode({ id, data }) {
 
       <Handle type="source" position={Position.Bottom} />
     </Card>
+  </div>
   );
 }

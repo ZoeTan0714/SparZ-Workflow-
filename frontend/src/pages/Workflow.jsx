@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Menu, MenuItem } from '@mui/material';
+import { useAuth } from '../context/AuthContext';
 import WorkflowCanvas from '../components/workflow/WorkflowCanvas';
 import { fetchWorkflows, fetchWorkflowById, createWorkflow as createWorkflowAPI, saveWorkflow, deleteWorkflow } from '../services/workflowService';
 
 function Workflow() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [workflows, setWorkflows] = useState([
     { id: '1', name: 'Client Onboarding' },
     { id: '2', name: 'KOL Communication' },
@@ -42,6 +45,7 @@ function Workflow() {
   };
 
   const handleWorkflowTabContextMenu = (event, workflowId) => {
+    if (!isAdmin) return;
     event.preventDefault();
     setContextWorkflowId(workflowId);
     setContextMenu(
@@ -64,7 +68,7 @@ function Workflow() {
   };
 
   const confirmDeleteWorkflow = async () => {
-    if (!contextWorkflowId) return;
+    if (!isAdmin || !contextWorkflowId) return;
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(contextWorkflowId);
 
     try {
@@ -92,6 +96,7 @@ function Workflow() {
   };
 
   const handleWorkflowTabDoubleClick = (workflowId) => {
+    if (!isAdmin) return;
     const workflow = workflows.find((wf) => wf.id === workflowId);
     if (!workflow) return;
 
@@ -107,7 +112,7 @@ function Workflow() {
   };
 
   const confirmRenameWorkflow = async () => {
-    if (!renameWorkflowId) return;
+    if (!isAdmin || !renameWorkflowId) return;
     const updatedName = renameWorkflowName.trim() || 'Untitled Workflow';
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(renameWorkflowId);
 
@@ -204,6 +209,9 @@ function Workflow() {
         setSelectedWorkflowId(savedWorkflow._id);
       } else {
         await saveWorkflow(workflowId, payload);
+        // ensure frontend cache reflects the saved nodes/edges so switching away and back
+        // shows the latest data without requiring a full page refresh
+        setWorkflowData((prev) => ({ ...prev, [workflowId]: { nodes: nodes || [], edges: edges || [] } }));
       }
 
       alert('Workflow saved successfully.');
@@ -234,35 +242,39 @@ function Workflow() {
               key={wf.id}
               variant={wf.id === selectedWorkflowId ? 'contained' : 'outlined'}
               onClick={() => setSelectedWorkflowId(wf.id)}
-              onContextMenu={(event) => handleWorkflowTabContextMenu(event, wf.id)}
-              onDoubleClick={() => handleWorkflowTabDoubleClick(wf.id)}
+              onContextMenu={isAdmin ? (event) => handleWorkflowTabContextMenu(event, wf.id) : undefined}
+              onDoubleClick={isAdmin ? () => handleWorkflowTabDoubleClick(wf.id) : undefined}
             >
               {wf.name}
             </Button>
           ))}
         </Box>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleCreateClick}
-          sx={{ position: 'absolute', right: 0 }}
-        >
-          + Create Workflow
-        </Button>
+        {isAdmin && (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleCreateClick}
+            sx={{ position: 'absolute', right: 0 }}
+          >
+            + Create Workflow
+          </Button>
+        )}
       </Box>
 
-      <Menu
-        open={contextMenu !== null}
-        onClose={handleCloseContextMenu}
-        anchorReference="anchorPosition"
-        anchorPosition={
-          contextMenu !== null
-            ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
-            : undefined
-        }
-      >
-        <MenuItem onClick={handleOpenDeleteDialog}>Delete workflow</MenuItem>
-      </Menu>
+      {isAdmin && (
+        <Menu
+          open={contextMenu !== null}
+          onClose={handleCloseContextMenu}
+          anchorReference="anchorPosition"
+          anchorPosition={
+            contextMenu !== null
+              ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+              : undefined
+          }
+        >
+          <MenuItem onClick={handleOpenDeleteDialog}>Delete workflow</MenuItem>
+        </Menu>
+      )}
 
       <Dialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
         <DialogTitle>Delete Workflow</DialogTitle>
@@ -301,6 +313,7 @@ function Workflow() {
         setWorkflowData={setWorkflowData}
         onSave={handleSaveWorkflow}
         isSaving={isSaving}
+        isAdmin={isAdmin}
       />
 
       {/* Create Workflow Dialog */}

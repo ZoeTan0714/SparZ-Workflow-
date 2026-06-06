@@ -4,6 +4,7 @@ import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import WorkIcon from "@mui/icons-material/Work";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import {
   Account,
   AccountPreview,
@@ -19,7 +20,7 @@ import forgeLogo from "../assets/sparz.png";
 import { theme } from "../styles/theme";
 import { useMemo, useState } from "react";
 
-const NAVIGATION = [
+const BASE_NAVIGATION = [
   {
     kind: "header",
     title: "Workspace",
@@ -156,16 +157,28 @@ function Dashboard() {
 
   const userSession = {
     user: {
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email,
+      name: user ? `${user.firstName} ${user.lastName}` : "",
+      email: user?.email || "",
     },
   };
 
   const [session, setSession] = useState(userSession);
 
+  const navigation = useMemo(() => {
+    const items = [...BASE_NAVIGATION];
+    if (user?.role === "admin") {
+      items.push({
+        segment: "admin",
+        title: "Admin",
+        icon: <AdminPanelSettingsIcon />,
+      });
+    }
+    return items;
+  }, [user]);
+
   return (
     <AppProvider
-      navigation={NAVIGATION}
+      navigation={navigation}
       branding={{
         logo: <img src={forgeLogo} alt="FORGE logo" style={{ height: 50 }} />,
         title: "",

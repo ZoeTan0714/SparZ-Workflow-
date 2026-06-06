@@ -9,6 +9,7 @@ import Dashboard from "./components/Dashboard";
 import { theme } from "./styles/theme";
 import TaskPage from "./pages/TaskPage";
 import Workflow from "./pages/Workflow";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="/projects" element={<ProjectSpace />} />
             <Route path="/tasks/:projectId" element={<TaskPage />} />
             <Route path="/workflow" element={<Workflow />} />
+            <Route path="/admin" element={<Admin />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -32,6 +32,7 @@ const signup = async (req, res) => {
       lastName,
       email,
       password: hashedPassword,
+      role: email === "zoe.txy@outlook.com" ? "admin" : "user",
     });
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
