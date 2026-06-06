@@ -16,7 +16,7 @@ const nodeTypes = {
   workflowNode: WorkflowNode,
 };
 
-export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSaving }) {
+export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSaving, isAdmin }) {
   const currentData = workflowData[workflowId] || { nodes: [], edges: [] };
 
   const [nodes, setNodes, onNodesChange] = useNodesState(currentData.nodes);
@@ -41,8 +41,9 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
       width: n.width ?? n.data?.width ?? undefined,
       data: {
         ...n.data,
-        onDelete: deleteNode,
-        onUpdateData: updateNodeData,
+        isAdmin,
+        onDelete: isAdmin ? deleteNode : undefined,
+        onUpdateData: isAdmin ? updateNodeData : undefined,
       },
     }));
     setNodes(normalizedNodes);
@@ -115,20 +116,22 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
           z-index: 50 !important;
         }
       `}</style>
-      <Button
-        variant="outlined"
-        color="inherit"
-        onClick={addNode}
-        sx={{ mb: 1, backgroundColor: '#f5f5f5', '&:hover': { backgroundColor: '#e0e0e0' } }}
-      >
-        + Add Step
-      </Button>
+      {isAdmin && (
+        <Button
+          variant="outlined"
+          color="inherit"
+          onClick={addNode}
+          sx={{ mb: 1, backgroundColor: '#f5f5f5', '&:hover': { backgroundColor: '#e0e0e0' } }}
+        >
+          + Add Step
+        </Button>
+      )}
       <Button
         variant="contained"
         color="primary"
         onClick={() => onSave?.(workflowId, nodes, edges)}
-        disabled={!workflowId || isSaving}
-        sx={{ mb: 1, ml: 1 }}
+        disabled={!workflowId || isSaving || !isAdmin}
+        sx={{ mb: 1, ml: isAdmin ? 1 : 0 }}
       >
         {isSaving ? 'Saving...' : 'Save'}
       </Button>
@@ -136,9 +139,9 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onNodesChange={isAdmin ? onNodesChange : undefined}
+        onEdgesChange={isAdmin ? onEdgesChange : undefined}
+        onConnect={isAdmin ? onConnect : undefined}
         nodeTypes={nodeTypes}
       >
         <Background />

@@ -261,6 +261,14 @@ function Workflow() {
         )}
       </Box>
 
+      {!isAdmin && (
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Typography color="text.secondary">
+            您是普通用户，当前仅可查看流程和使用 Copy / View Doc。编辑、保存、创建、重命名和删除功能已禁用。
+          </Typography>
+        </Box>
+      )}
+
       {isAdmin && (
         <Menu
           open={contextMenu !== null}
