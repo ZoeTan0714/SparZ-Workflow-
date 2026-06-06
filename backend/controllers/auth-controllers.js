@@ -48,6 +48,7 @@ const signup = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        avatar: user.avatar || "",
       },
     });
   } catch (error) {
@@ -86,6 +87,74 @@ const signin = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
+        avatar: user.avatar || "",
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { username, email, password, avatar } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized." });
+    }
+
+    const updates = {};
+    if (username) updates.username = username;
+    if (email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: "Invalid email format." });
+      }
+      updates.email = email;
+    }
+    if (avatar !== undefined) {
+      updates.avatar = avatar;
+    }
+    if (password) {
+      if (password.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters." });
+      }
+      updates.password = await bcrypt.hash(password, 12);
+    }
+
+    const existingQuery = {
+      _id: { $ne: userId },
+      $or: [],
+    };
+    if (username) existingQuery.$or.push({ username });
+    if (email) existingQuery.$or.push({ email });
+
+    if (existingQuery.$or.length > 0) {
+      const existingUser = await User.findOne(existingQuery);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username or email already taken." });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    return res.status(200).json({
+      user: {
+        _id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar || "",
       },
     });
   } catch (error) {
@@ -97,4 +166,4 @@ const signout = async (req, res) => {
   return res.status(200).json({ message: "Signed out successfully." });
 };
 
-module.exports = { signup, signin, signout };
+module.exports = { signup, signin, updateProfile, signout };

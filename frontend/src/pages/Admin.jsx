@@ -49,9 +49,9 @@ export default function Admin() {
   return (
     <Box>
       <Typography variant="h4" mb={2}>
-        Admin Page
+        User Management
       </Typography>
-      <Typography variant="body2" color="text.secondary" mb={3}>
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 4 }}>
         这里列出了所有用户。管理员可以修改用户角色。
       </Typography>
 

@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack, Typography, Avatar, Button, TextField, Divider } from "@mui/material";
 import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout, ThemeSwitcher } from "@toolpad/core/DashboardLayout";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -11,14 +11,14 @@ import {
   AccountPopoverFooter,
   SignOutButton,
 } from "@toolpad/core/Account";
-import Divider from "@mui/material/Divider";
-import ListItemText from "@mui/material/ListItemText";
+import DividerMui from "@mui/material/Divider";
 import { useSession } from "@toolpad/core/useSession";
 import { useAuth } from "../context/AuthContext";
 import UserAvatar from "./UserAvatar";
 import forgeLogo from "../assets/sparz.png";
 import { theme } from "../styles/theme";
 import { useMemo, useState } from "react";
+import { updateProfile } from "../services/authService";
 
 const BASE_NAVIGATION = [
   {
@@ -57,7 +57,7 @@ function AccountSidebarPreview(props) {
         open={open}
         slotProps={{
           avatar: {
-            children: <UserAvatar name={session.user.name} />,
+            children: <UserAvatar name={session.user.name} src={session.user.avatar} />,
           },
         }}
       />
@@ -66,20 +66,126 @@ function AccountSidebarPreview(props) {
 }
 
 function SidebarFooterAccountPopover() {
-  const session = useSession();
-  if (!session?.user) return null;
+  const { user, token, login } = useAuth();
+  const defaultFormData = useMemo(
+    () => ({
+      username: user?.username || "",
+      email: user?.email || "",
+      password: "",
+      avatar: user?.avatar || "",
+      preview: user?.avatar || "",
+    }),
+    [user],
+  );
+  const [formData, setFormData] = useState(defaultFormData);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFileChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        avatar: reader.result,
+        preview: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    setSaving(true);
+    setError("");
+    try {
+      const payload = {
+        username: formData.username,
+        email: formData.email,
+        avatar: formData.avatar,
+      };
+      if (formData.password) {
+        payload.password = formData.password;
+      }
+
+      const res = await updateProfile(payload);
+      login(token, res.data.user);
+      setFormData((prev) => ({ ...prev, password: "" }));
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Unable to update profile.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData(defaultFormData);
+    setError("");
+  };
+
+  if (!user) return null;
+
   return (
-    <Stack direction="column">
-      <Box sx={{ p: 2, display: "flex", gap: 2 }}>
-        <UserAvatar name={session.user.name} />
-        <ListItemText
-          primary={session.user.name}
-          secondary={session.user.email}
-          primaryTypographyProps={{ variant: "body2" }}
-          secondaryTypographyProps={{ variant: "caption" }}
-        />
+    <Stack direction="column" sx={{ width: 320, p: 2, gap: 1 }}>
+      <Typography variant="subtitle2" fontWeight={700}>
+        Account settings
+      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+        <Avatar src={formData.preview} sx={{ width: 56, height: 56 }}>
+          {!formData.preview && user.username?.[0]?.toUpperCase()}
+        </Avatar>
+        <Button component="label" size="small" variant="outlined">
+          Upload dp
+          <input hidden accept="image/*" type="file" onChange={handleFileChange} />
+        </Button>
       </Box>
-      <Divider />
+      {error && (
+        <Typography variant="caption" color="error">
+          {error}
+        </Typography>
+      )}
+      <TextField
+        label="Username"
+        value={formData.username}
+        onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+        fullWidth
+        size="small"
+      />
+      <TextField
+        label="Email"
+        type="email"
+        value={formData.email}
+        onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+        fullWidth
+        size="small"
+      />
+      <TextField
+        label="Password"
+        type="password"
+        helperText="Leave blank to keep current password"
+        value={formData.password}
+        onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+        fullWidth
+        size="small"
+      />
+      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1, mt: 1 }}>
+        <Button size="small" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button size="small" variant="contained" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save"}
+        </Button>
+      </Box>
+      <DividerMui />
+      <Stack direction="column" spacing={0.5}>
+        <Typography variant="body2">{user.username}</Typography>
+        <Typography variant="caption" color="text.secondary">
+          {user.email}
+        </Typography>
+      </Stack>
+      <DividerMui />
       <AccountPopoverFooter>
         <SignOutButton />
       </AccountPopoverFooter>
@@ -96,10 +202,10 @@ const createPreviewComponent = (mini) => {
 
 function SidebarFooterAccount({ mini }) {
   const session = useSession();
+  const PreviewComponent = useMemo(() => createPreviewComponent(mini), [mini]);
 
   if (!session?.user) return null;
 
-  const PreviewComponent = useMemo(() => createPreviewComponent(mini), [mini]);
   return (
     <Box sx={{ p: 2 }}>
       <Account
@@ -145,7 +251,7 @@ function SidebarFooterAccount({ mini }) {
 function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const router = useMemo(() => {
     return {
@@ -155,21 +261,23 @@ function Dashboard() {
     };
   }, [location, navigate]);
 
-  const userSession = {
-    user: {
-      name: user ? `${user.firstName} ${user.lastName}` : "",
-      email: user?.email || "",
-    },
-  };
-
-  const [session, setSession] = useState(userSession);
+  const session = useMemo(
+    () => ({
+      user: {
+        name: user ? `${user.firstName} ${user.lastName}` : "",
+        email: user?.email || "",
+        avatar: user?.avatar || "",
+      },
+    }),
+    [user],
+  );
 
   const navigation = useMemo(() => {
     const items = [...BASE_NAVIGATION];
     if (user?.role === "admin") {
       items.push({
         segment: "admin",
-        title: "Admin",
+        title: "User",
         icon: <AdminPanelSettingsIcon />,
       });
     }
@@ -189,7 +297,7 @@ function Dashboard() {
       session={session}
       authentication={{
         signOut: () => {
-          setSession(null);
+          logout();
           navigate("/signout");
         },
       }}

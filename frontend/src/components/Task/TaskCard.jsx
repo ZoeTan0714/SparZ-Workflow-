@@ -1,5 +1,6 @@
 import { useDraggable } from "@dnd-kit/core";
 import { alpha, useTheme } from "@mui/material/styles";
+import dayjs from "dayjs";
 
 import UserAvatar from "../UserAvatar";
 
@@ -73,6 +74,12 @@ function TaskCardBody({ task, onClick }) {
         <span>{task.type}</span>
 
         <span>{task.priority}</span>
+
+        <span>
+          {task.dueDate
+            ? dayjs(task.dueDate).format("YYYY-MM-DD")
+            : "None"}
+        </span>
       </div>
     </div>
   );

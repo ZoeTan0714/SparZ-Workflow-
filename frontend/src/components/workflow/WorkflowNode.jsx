@@ -4,11 +4,12 @@ import { Handle, Position, NodeResizer } from 'reactflow';
 
 export default function WorkflowNode({ id, data }) {
   const width = data.width || 280;
+  const isAdmin = data.isAdmin;
 
   const updateData = useCallback((changes) => {
-    if (!data.onUpdateData) return;
+    if (!isAdmin || !data.onUpdateData) return;
     data.onUpdateData(id, { ...data, ...changes });
-  }, [data, id]);
+  }, [data, id, isAdmin]);
 
   const shouldResize = useCallback((event, params) => params.direction[1] === 0, []);
 
@@ -24,15 +25,17 @@ export default function WorkflowNode({ id, data }) {
   return (
     <div style={{ width, position: 'relative' }}>
       <Card sx={{ width: '100%', p: 1, boxSizing: 'border-box' }}>
-        <NodeResizer
-          nodeId={id}
-          minWidth={200}
-          maxWidth={600}
-          shouldResize={shouldResize}
-          lineStyle={{ opacity: 0 }}
-          handleStyle={{ opacity: 0 }}
-          onResize={(event, params) => updateData({ width: params.width })}
-        />
+        {isAdmin && (
+          <NodeResizer
+            nodeId={id}
+            minWidth={200}
+            maxWidth={600}
+            shouldResize={shouldResize}
+            lineStyle={{ opacity: 0 }}
+            handleStyle={{ opacity: 0 }}
+            onResize={(event, params) => updateData({ width: params.width })}
+          />
+        )}
         <Handle type="target" position={Position.Top} />
 
         <CardContent
@@ -43,29 +46,32 @@ export default function WorkflowNode({ id, data }) {
         <TextField
           label="Title"
           value={data.title || ''}
-          onChange={(e) => updateData({ title: e.target.value })}
+          onChange={isAdmin ? (e) => updateData({ title: e.target.value }) : undefined}
           fullWidth
           className="nodrag"
-          inputProps={{ className: 'nodrag' }}
+          inputProps={{ className: 'nodrag', readOnly: !isAdmin }}
+          disabled={!isAdmin}
         />
 
         <TextField
           label="Description"
           value={data.description || ''}
-          onChange={(e) => updateData({ description: e.target.value })}
+          onChange={isAdmin ? (e) => updateData({ description: e.target.value }) : undefined}
           fullWidth
           multiline
           sx={{ mt: 1 }}
           className="nodrag"
-          inputProps={{ className: 'nodrag' }}
+          inputProps={{ className: 'nodrag', readOnly: !isAdmin }}
+          disabled={!isAdmin}
         />
 
         <FormControlLabel
           control={
             <Checkbox
               checked={data.hasTemplate || false}
-              onChange={(e) => updateData({ hasTemplate: e.target.checked })}
+              onChange={isAdmin ? (e) => updateData({ hasTemplate: e.target.checked }) : undefined}
               className="nodrag"
+              disabled={!isAdmin}
             />
           }
           label="Have Template"
@@ -76,12 +82,13 @@ export default function WorkflowNode({ id, data }) {
           <TextField
             label="Template"
             value={data.template || ''}
-            onChange={(e) => updateData({ template: e.target.value })}
+            onChange={isAdmin ? (e) => updateData({ template: e.target.value }) : undefined}
             fullWidth
             multiline
             sx={{ mt: 1 }}
             className="nodrag"
-            inputProps={{ className: 'nodrag' }}
+            inputProps={{ className: 'nodrag', readOnly: !isAdmin }}
+            disabled={!isAdmin}
           />
         )}
 
@@ -89,8 +96,9 @@ export default function WorkflowNode({ id, data }) {
           control={
             <Checkbox
               checked={data.hasURL || false}
-              onChange={(e) => updateData({ hasURL: e.target.checked })}
+              onChange={isAdmin ? (e) => updateData({ hasURL: e.target.checked }) : undefined}
               className="nodrag"
+              disabled={!isAdmin}
             />
           }
           label="Have URL"
@@ -101,11 +109,12 @@ export default function WorkflowNode({ id, data }) {
           <TextField
             label="URL"
             value={data.url || ''}
-            onChange={(e) => updateData({ url: e.target.value })}
+            onChange={isAdmin ? (e) => updateData({ url: e.target.value }) : undefined}
             fullWidth
             sx={{ mt: 1 }}
             className="nodrag"
-            inputProps={{ className: 'nodrag' }}
+            inputProps={{ className: 'nodrag', readOnly: !isAdmin }}
+            disabled={!isAdmin}
           />
         )}
 
@@ -122,9 +131,11 @@ export default function WorkflowNode({ id, data }) {
             </Button>
           )}
 
-          <Button size="small" color="error" onClick={() => data.onDelete?.(id)} className="nodrag">
-            Delete
-          </Button>
+          {isAdmin && (
+            <Button size="small" color="error" onClick={() => data.onDelete?.(id)} className="nodrag">
+              Delete
+            </Button>
+          )}
         </div>
       </CardContent>
 

@@ -21,10 +21,8 @@ import {
   queryUserByName,
 } from "../../services/projectSpaceService";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const CreateProjectForm = ({ onClose }) => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [errorMessage, setErrorMessage] = useState("");
   const [formData, setFormData] = useState({
@@ -123,7 +121,8 @@ const CreateProjectForm = ({ onClose }) => {
         sx={{
           width: "100%",
           maxWidth: 448,
-          p: 4,
+          px: 3,
+          py: 3,
           border: "1px solid",
           borderColor: "grey.200",
           borderRadius: 3,

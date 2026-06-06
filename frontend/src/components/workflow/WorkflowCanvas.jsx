@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -48,7 +48,7 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
     }));
     setNodes(normalizedNodes);
     setEdges(data.edges || []);
-  }, [workflowId, workflowData, setEdges, setNodes, deleteNode, updateNodeData]);
+  }, [workflowId, workflowData, setEdges, setNodes, deleteNode, updateNodeData, isAdmin]);
 
   // Local node/edge changes are kept in canvas state until the user clicks Save.
   // This prevents rerender loops and input flicker caused by syncing every edit back to workflowData.

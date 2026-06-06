@@ -13,6 +13,10 @@ import Stack from "@mui/material/Stack";
 import Chip from "@mui/material/Chip";
 import Avatar from "@mui/material/Avatar";
 import Alert from "@mui/material/Alert";
+import dayjs from "dayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
 const VALIDATION_MESSAGE = "Please fill in compulsory field.";
 
@@ -24,6 +28,8 @@ function createEmptyForm() {
     type: "",
     status: "",
     priority: "",
+    dueDateMode: "date",
+    dueDate: null,
   };
 }
 
@@ -50,16 +56,13 @@ export default function TaskModal({
     if (selectedTask) {
       setForm({
         title: selectedTask.title || "",
-
         description: selectedTask.description || "",
-
         assignees: selectedTask.assignees?.map((u) => u._id) || [],
-
         type: selectedTask.type || "",
-
         status: selectedTask.status || "",
-
         priority: selectedTask.priority || "",
+        dueDateMode: selectedTask.dueDate ? "date" : "none",
+        dueDate: selectedTask.dueDate ? dayjs(selectedTask.dueDate) : null,
       });
     } else {
       setForm(createEmptyForm());
@@ -106,8 +109,9 @@ export default function TaskModal({
     const statusOk = Boolean(form.status);
     const typeOk = Boolean(form.type);
     const priorityOk = Boolean(form.priority);
+    const dueDateOk = form.dueDateMode === "none" || Boolean(form.dueDate);
 
-    return titleOk && descOk && statusOk && typeOk && priorityOk;
+    return titleOk && descOk && statusOk && typeOk && priorityOk && dueDateOk;
   };
 
   const handleSubmit = async () => {
@@ -131,7 +135,10 @@ export default function TaskModal({
               Authorization: `Bearer ${token}`,
             },
 
-            body: JSON.stringify(form),
+            body: JSON.stringify({
+            ...form,
+            dueDate: form.dueDateMode === "date" && form.dueDate ? form.dueDate.toISOString() : null,
+          }),
           },
         );
 
@@ -155,7 +162,7 @@ export default function TaskModal({
 
             body: JSON.stringify({
               ...form,
-
+              dueDate: form.dueDateMode === "date" && form.dueDate ? form.dueDate.toISOString() : null,
               project: projectId,
             }),
           },
@@ -389,6 +396,50 @@ export default function TaskModal({
 
             <MenuItem value="Done">Done</MenuItem>
           </TextField>
+
+          <TextField
+            required
+            select
+            name="dueDateMode"
+            id="task-due-date-mode-input"
+            label="Target End Date"
+            value={form.dueDateMode}
+            onChange={(e) => {
+              handleChange(e);
+              if (e.target.value === "none") {
+                setForm((prev) => ({ ...prev, dueDate: null }));
+              }
+            }}
+            variant="outlined"
+            size="small"
+            fullWidth
+            SelectProps={{ displayEmpty: true }}
+          >
+            <MenuItem value="date">Pick a date</MenuItem>
+            <MenuItem value="none">None</MenuItem>
+          </TextField>
+
+          {form.dueDateMode === "date" && (
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                slotProps={{
+                  openPickerButton: { color: "primary" },
+                  inputAdornment: { component: "span" },
+                }}
+                name="dueDate"
+                id="task-due-date-input"
+                label="Select date"
+                value={form.dueDate}
+                onChange={(newValue) => {
+                  setFormError("");
+                  setForm((prev) => ({ ...prev, dueDate: newValue }));
+                }}
+                renderInput={(params) => (
+                  <TextField {...params} fullWidth size="small" />
+                )}
+              />
+            </LocalizationProvider>
+          )}
 
           <TextField
             required

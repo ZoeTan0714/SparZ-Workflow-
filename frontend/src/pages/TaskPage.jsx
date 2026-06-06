@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -10,10 +10,10 @@ import dayjs from "dayjs";
 import KanbanBoard from "../components/Task/KanbanBoard";
 import TaskModal from "../components/Task/TaskModal";
 import { getProjectDetails } from "../services/projectSpaceService";
-import api from "../services/api";
 
 export default function TaskPage() {
   const { projectId } = useParams();
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
   const [project, setProject] = useState(null);
@@ -115,6 +115,15 @@ export default function TaskPage() {
             // even when the board is wider than the viewport.
           }}
         >
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => navigate("/projects")}
+            sx={{ mr: 1, flexShrink: 0 }}
+          >
+            {'<'}
+          </Button>
+
           <Typography component="h1" variant="h5" fontWeight={700}>
             {projectTitle} Tasks
           </Typography>

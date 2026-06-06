@@ -71,6 +71,11 @@ const ProjectSpace = () => {
 
   return (
     <>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary">
+          点击 Project 获取项目进度情况
+        </Typography>
+      </Box>
       <Box
         sx={{
           width: "100%",
@@ -128,13 +133,11 @@ const ProjectSpace = () => {
         </Card>
         {projects?.map((project, index) => {
           const isProjectLead = user && project?.projectLead?._id === user._id;
+          const canEditProject = user?.role === "admin" || isProjectLead;
           return (
             <Card key={project._id} sx={{ position: "relative" }}>
               <CardActionArea
                 onClick={() => {
-                  // setSelectedProject(index);
-                  // setSelectedProjectId(project._id);
-                  // setOpenTaskPage(true);
                   navigate(`/tasks/${project._id}`);
                 }}
                 sx={{
@@ -160,7 +163,7 @@ const ProjectSpace = () => {
                         {project.projectTitle}
                       </Typography>
                     </Box>
-                    {isProjectLead && (
+                    {canEditProject && (
                       <IconButton
                         size="small"
                         sx={{
