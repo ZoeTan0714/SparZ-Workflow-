@@ -105,7 +105,9 @@ const updateProfile = async (req, res) => {
     }
 
     const updates = {};
+    
     if (username) updates.username = username;
+    
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
@@ -113,9 +115,15 @@ const updateProfile = async (req, res) => {
       }
       updates.email = email;
     }
+    
     if (avatar !== undefined) {
+      // Limit avatar base64 string to 1MB
+      if (avatar && typeof avatar === 'string' && avatar.length > 1024 * 1024) {
+        return res.status(400).json({ message: "Avatar image is too large. Maximum size is 1MB." });
+      }
       updates.avatar = avatar;
     }
+    
     if (password) {
       if (password.length < 6) {
         return res.status(400).json({ message: "Password must be at least 6 characters." });

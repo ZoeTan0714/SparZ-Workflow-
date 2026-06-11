@@ -168,7 +168,7 @@ function EditProjectForm({ projectId, onClose }) {
             }}
             name="targetDate"
             id="target-date-input"
-            label="Target Date"
+            label="Contract Completion Date"
             value={editForm.targetDate ? dayjs(editForm.targetDate) : null}
             onChange={(newValue) =>
               setEditForm((prev) => ({ ...prev, targetDate: newValue }))
@@ -185,10 +185,9 @@ function EditProjectForm({ projectId, onClose }) {
             }
             fullWidth
           >
-            <MenuItem value={"To Do"}>To Do</MenuItem>
             <MenuItem value={"In Progress"}>In Progress</MenuItem>
-            <MenuItem value={"In Review"}>In Review</MenuItem>
-            <MenuItem value={"Completed"}>Completed</MenuItem>
+            <MenuItem value={"KIV"}>KIV</MenuItem>
+            <MenuItem value={"Closed"}>Closed</MenuItem>
           </TextField>
           <Stack
             direction="row"

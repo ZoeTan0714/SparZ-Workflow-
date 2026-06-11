@@ -32,7 +32,7 @@ const CreateProjectForm = ({ onClose }) => {
     projectLead: user ? `${user.firstName} ${user.lastName}` : "",
     members: [],
     targetDate: null,
-    status: "To Do",
+    status: "In Progress",
   });
 
   const [membersList, setMembersList] = useState([]);
@@ -234,7 +234,7 @@ const CreateProjectForm = ({ onClose }) => {
               required
               name="targetDate"
               id="target-date-input"
-              label="Target Date"
+              label="Contract Completion Date"
               value={formData.targetDate}
               onChange={(newValue) =>
                 (setErrorMessage(""),
@@ -254,10 +254,9 @@ const CreateProjectForm = ({ onClose }) => {
             size="small"
             fullWidth
           >
-            <MenuItem value={"To Do"}>To Do</MenuItem>
             <MenuItem value={"In Progress"}>In Progress</MenuItem>
-            <MenuItem value={"In Review"}>In Review</MenuItem>
-            <MenuItem value={"Completed"}>Completed</MenuItem>
+            <MenuItem value={"KIV"}>KIV</MenuItem>
+            <MenuItem value={"Closed"}>Closed</MenuItem>
           </TextField>
           <Box>
             <Button variant="outlined" fullWidth onClick={onClose}>

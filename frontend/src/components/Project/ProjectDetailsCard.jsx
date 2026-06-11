@@ -14,7 +14,7 @@ import {
   Stack,
   Icon,
 } from "@mui/material";
-import { useState, preventDefault, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext";
 import {
   queryUserByName,
@@ -245,10 +245,10 @@ function ProjectDetailsCard({ projectId, onClose }) {
                 Description: {projectData.description}
               </Typography>
               <Typography>
-                Target Date:
+                Contract Completion Date:
                 {projectData.targetDate
                   ? dayjs(projectData.targetDate).format("YYYY-MM-DD")
-                  : "No target date set"}
+                  : "No completion date set"}
               </Typography>
               <Typography>Project Status: {projectData.status}</Typography>
               <Typography variant="body2">Project Lead:</Typography>

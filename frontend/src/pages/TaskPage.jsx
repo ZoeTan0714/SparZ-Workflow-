@@ -88,8 +88,8 @@ export default function TaskPage() {
     : "Project lead";
 
   const targetDateLabel = project?.targetDate
-    ? dayjs(project.targetDate).format("YYYY-MM-DD")
-    : "Target date";
+    ? `Contract Completion Date: ${dayjs(project.targetDate).format("YYYY-MM-DD")}`
+    : "Contract Completion Date";
 
   const statusLabel = project?.status || "Status";
 

@@ -22,7 +22,7 @@ function boardCollisionDetection(args) {
   return rectIntersection(args);
 }
 
-const columns = ["To Do", "In Progress", "In Review", "Done"];
+const columns = ["In Progress", "Pending Client", "Pending Report", "Closed"];
 
 function DroppableColumn({ columnId, title, columnTasks, onTaskClick }) {
   const theme = useTheme();

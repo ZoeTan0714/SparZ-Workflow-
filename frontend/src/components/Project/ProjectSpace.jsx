@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 import * as workspaceService from "../../services/projectSpaceService";
 import UserAvatar from "../UserAvatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
@@ -260,12 +261,11 @@ const ProjectSpace = () => {
                       </Typography>
                     </Box>
                   </Stack>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ height: 40, overflow: "hidden" }}
-                  >
-                    {project.description}
+                  <Typography variant="body2" color="text.secondary">
+                    End Date: {project.targetDate ? dayjs(project.targetDate).format("YYYY-MM-DD") : "No end date"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Status: {project.status || "Unknown"}
                   </Typography>
                   <Typography variant="caption" sx={{ fontWeight: 600 }}>
                     {project.progress.completed} / {project.progress.total}{" "}

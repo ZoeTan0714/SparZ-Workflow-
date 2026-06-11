@@ -26,8 +26,8 @@ function createEmptyForm() {
     description: "",
     assignees: [],
     type: "",
-    status: "",
-    priority: "",
+    status: "In Progress",
+    priority: "None",
     dueDateMode: "date",
     dueDate: null,
   };
@@ -364,9 +364,9 @@ export default function TaskModal({
               <em>Select type</em>
             </MenuItem>
 
-            <MenuItem value="Feature">Feature</MenuItem>
-
             <MenuItem value="Bug">Bug</MenuItem>
+
+            <MenuItem value="Feature">Feature</MenuItem>
 
             <MenuItem value="Improvement">Improvement</MenuItem>
           </TextField>
@@ -388,13 +388,13 @@ export default function TaskModal({
               <em>Select status</em>
             </MenuItem>
 
-            <MenuItem value="To Do">To Do</MenuItem>
-
             <MenuItem value="In Progress">In Progress</MenuItem>
 
-            <MenuItem value="In Review">In Review</MenuItem>
+            <MenuItem value="Pending Report">Pending Report</MenuItem>
 
-            <MenuItem value="Done">Done</MenuItem>
+            <MenuItem value="Pending Client">Pending Client</MenuItem>
+
+            <MenuItem value="Closed">Closed</MenuItem>
           </TextField>
 
           <TextField

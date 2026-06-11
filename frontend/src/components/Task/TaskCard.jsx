@@ -33,53 +33,92 @@ function useTaskCardShellStyle({ marginBottom = "12px" } = {}) {
   };
 }
 
-function TaskCardBody({ task, onClick }) {
-  return (
-    <div onClick={() => onClick?.(task)}>
-      <div
-        style={{
-          display: "flex",
+function TaskCardBody({ task, onClick, dragListeners, dragAttributes }) {
+  const handleCardClick = (e) => {
+    e.stopPropagation();
+    onClick?.(task);
+  };
 
-          justifyContent: "space-between",
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+      }}
+    >
+      {/* Draggable Handle */}
+      <div
+        {...dragListeners}
+        {...dragAttributes}
+        style={{
+          cursor: "grab",
+          touchAction: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minWidth: "24px",
+          flexShrink: 0,
+          color: "#999",
+          fontSize: "18px",
+          userSelect: "none",
         }}
       >
-        <strong>{task.title}</strong>
+        ⋮⋮
+      </div>
 
+      {/* Clickable Content */}
+      <div
+        onClick={handleCardClick}
+        style={{
+          cursor: "pointer",
+          flex: 1,
+        }}
+      >
         <div
           style={{
             display: "flex",
-            gap: "5px",
+            justifyContent: "space-between",
           }}
         >
-          {task.assignees?.map((user) => (
-            <UserAvatar
-              key={user._id}
-              name={user.username}
-            />
-          ))}
+          <strong>{task.title}</strong>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "5px",
+            }}
+          >
+            {task.assignees?.map((user) => (
+              <UserAvatar
+                key={user._id}
+                name={user.username}
+              />
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div
-        style={{
-          marginTop: "10px",
+        <div
+          style={{
+            marginTop: "10px",
+            display: "flex",
+            gap: "10px",
+            fontSize: "12px",
+            flexWrap: "wrap",
+          }}
+        >
+          <span>{task.type}</span>
+          <span>{task.status}</span>
+        </div>
 
-          display: "flex",
-
-          gap: "10px",
-
-          fontSize: "12px",
-        }}
-      >
-        <span>{task.type}</span>
-
-        <span>{task.priority}</span>
-
-        <span>
-          {task.dueDate
-            ? dayjs(task.dueDate).format("YYYY-MM-DD")
-            : "None"}
-        </span>
+        <div
+          style={{
+            marginTop: "8px",
+            fontSize: "12px",
+            color: "#666",
+          }}
+        >
+          Target completion date: {task.dueDate ? dayjs(task.dueDate).format("YYYY-MM-DD") : "None"}
+        </div>
       </div>
     </div>
   );
@@ -146,25 +185,12 @@ export default function TaskCard({
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div
-        {...listeners}
-        {...attributes}
-        style={{
-          cursor: "grab",
-
-          marginBottom: "10px",
-
-          fontSize: "14px",
-
-          color: theme.palette.text.secondary,
-
-          touchAction: "none",
-        }}
-      >
-        ☰ Drag
-      </div>
-
-      <TaskCardBody task={task} onClick={onClick} />
+      <TaskCardBody
+        task={task}
+        onClick={onClick}
+        dragListeners={listeners}
+        dragAttributes={attributes}
+      />
     </div>
   );
 }

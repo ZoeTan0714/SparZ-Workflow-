@@ -1,4 +1,5 @@
 const Task = require ("../models/task")
+const Project = require("../models/project");
 const mongoose = require("mongoose")
 
 exports.createTask = async (req,res) => {
@@ -31,11 +32,17 @@ exports.deleteTask = async (req,res) => {
         const task = await Task.findById(req.params.id);
         if (!task) return res.status(404).json({ message: "Task not found" });
 
-        if (
-            task.assignees[0]?.toString() !==
-            req.user.userId
-        ) {
-            return res.status(403).json({ message: "Only the creator can delete this task" })
+        // allow delete if requester is project lead, a project member, or admin
+        const project = await Project.findById(task.project);
+        if (!project) return res.status(404).json({ message: "Project not found" });
+
+        const userId = req.user.userId;
+        const isProjectLead = project.projectLead?.toString() === userId;
+        const isMember = Array.isArray(project.members) && project.members.some(m => m.toString() === userId);
+        const isAdmin = req.user.role === 'admin';
+
+        if (!isProjectLead && !isMember && !isAdmin) {
+            return res.status(403).json({ message: "Only project members or admins can delete this task" });
         }
 
         await Task.findByIdAndDelete(req.params.id);

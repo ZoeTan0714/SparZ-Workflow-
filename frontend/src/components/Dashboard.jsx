@@ -43,6 +43,10 @@ function CustomToolbarActions() {
 function AccountSidebarPreview(props) {
   const { handleClick, open, mini } = props;
   const session = useSession();
+  const displayName = session?.user?.username
+    || `${session?.user?.firstName || ""} ${session?.user?.lastName || ""}`.trim()
+    || "User";
+
   return (
     <Stack direction="column" p={0}>
       <Divider />
@@ -52,7 +56,7 @@ function AccountSidebarPreview(props) {
         open={open}
         slotProps={{
           avatar: {
-            children: <UserAvatar name={session.user.name} src={session.user.avatar} />,
+            children: <UserAvatar name={displayName} src={session?.user?.avatar} />,
           },
         }}
       />
@@ -79,20 +83,43 @@ function SidebarFooterAccountPopover() {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
 
   useEffect(() => {
-    setFormData(defaultFormData);
-    setError("");
-  }, [defaultFormData]);
+    if (isProfileDialogOpen) {
+      setFormData(defaultFormData);
+      setError("");
+    }
+  }, [isProfileDialogOpen, defaultFormData]);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      setError("Please select a valid image file.");
+      return;
+    }
+    
+    // Limit file size to 500KB
+    const MAX_SIZE = 500 * 1024; // 500KB
+    if (file.size > MAX_SIZE) {
+      setError("Image size must be less than 500KB. Please compress the image.");
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onloadend = () => {
+      // Limit base64 string to 1MB
+      if (reader.result.length > 1024 * 1024) {
+        setError("Image is too large even after encoding. Please use a smaller image.");
+        return;
+      }
       setFormData((prev) => ({
         ...prev,
         avatar: reader.result,
         preview: reader.result,
       }));
+    };
+    reader.onerror = () => {
+      setError("Failed to read image file.");
     };
     reader.readAsDataURL(file);
   };
@@ -112,11 +139,18 @@ function SidebarFooterAccountPopover() {
       }
 
       const res = await updateProfile(payload);
-      login(token, res.data.user);
-      setFormData((prev) => ({ ...prev, password: "" }));
+      
+      // Close dialog first before updating auth context
       setIsProfileDialogOpen(false);
+      
+      // Then update auth context with new user data
+      if (res.data?.user) {
+        login(token, res.data.user);
+      } else {
+        setError("Failed to get updated user data.");
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Update profile error:", err);
       setError(err.response?.data?.message || "Unable to update profile.");
     } finally {
       setSaving(false);

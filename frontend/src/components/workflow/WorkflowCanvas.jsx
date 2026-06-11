@@ -72,11 +72,12 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
           template: '',
           hasURL: false,
           url: '',
-            width: 280,
-          onDelete: deleteNode,
-            onUpdateData: (nodeId, newData) => {
-              setNodes((nodes) => nodes.map(n => n.id === nodeId ? { ...n, data: newData, width: newData.width ?? n.width } : n));
-            },
+          width: 280,
+          isAdmin,
+          onDelete: isAdmin ? deleteNode : undefined,
+          onUpdateData: isAdmin ? (nodeId, newData) => {
+            setNodes((nodes) => nodes.map(n => n.id === nodeId ? { ...n, data: newData, width: newData.width ?? n.width } : n));
+          } : undefined,
         },
       };
       return [...nds, newNode];
