@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Button, Typography, TextField, Dialog, DialogTitle, DialogContent, DialogActions, Menu, MenuItem } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import WorkflowCanvas from '../components/workflow/WorkflowCanvas';
-import { fetchWorkflows, fetchWorkflowById, createWorkflow as createWorkflowAPI, saveWorkflow, deleteWorkflow } from '../services/workflowService';
+import { fetchWorkflows, fetchWorkflowById, createWorkflow as createWorkflowAPI, saveWorkflow, deleteWorkflow, reorderWorkflows as reorderWorkflowsAPI } from '../services/workflowService';
 
 function Workflow() {
   const { user } = useAuth();
@@ -261,14 +261,11 @@ function Workflow() {
     e.preventDefault();
     if (!draggingWorkflowId) return;
 
-    // Normalize targetIndex depending on drop position.
     let targetIndex = targetIndexArg;
-
     try {
       const rect = e.currentTarget && e.currentTarget.getBoundingClientRect && e.currentTarget.getBoundingClientRect();
       if (rect) {
         const midpoint = rect.left + rect.width / 2;
-        // If dropped on right half of element, insert after this index
         if (e.clientX >= midpoint) {
           targetIndex = (typeof targetIndexArg === 'number') ? targetIndexArg + 1 : targetIndexArg;
         }
@@ -277,9 +274,22 @@ function Workflow() {
       // ignore and fallback to provided targetIndexArg
     }
 
-    reorderWorkflows(draggingWorkflowId, targetIndex);
+    const updatedWorkflows = reorderWorkflows(draggingWorkflowId, targetIndex);
     setDraggingWorkflowId(null);
     setHoverIndex(null);
+
+    const persistedWorkflows = updatedWorkflows
+      .filter((wf) => /^[0-9a-fA-F]{24}$/.test(wf.id))
+      .map((wf) => ({ _id: wf.id }));
+
+    if (persistedWorkflows.length > 0) {
+      try {
+        await reorderWorkflowsAPI(persistedWorkflows);
+      } catch (err) {
+        console.error('Save workflow order failed', err);
+        alert('Failed to save workflow order.');
+      }
+    }
   };
 
   const handleDragOver = (e, index) => {
