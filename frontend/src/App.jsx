@@ -18,10 +18,10 @@ function App() {
 
       <AuthProvider>
         <Routes>
-          {/* DEFAULT */}
+          
           <Route path="/" element={<Navigate to="/signin" replace />} />
 
-          {/* AUTH */}
+          
           <Route path="/signup" element={<SignUp />} />
 
           <Route path="/signin" element={<SignIn />} />

@@ -101,7 +101,7 @@ export default function TaskPage() {
         maxWidth: "none",
       }}
     >
-      {/* Keep header aligned with the board's full scroll width */}
+      
       <Box sx={{ overflowX: "auto", pb: 0.5, mb: 2 }}>
         <Box
           sx={{
@@ -110,8 +110,6 @@ export default function TaskPage() {
             gap: 2,
             width: "max-content",
             minWidth: "100%",
-            // Kanban columns are fixed-width; this makes the button sit above "Done"
-            // even when the board is wider than the viewport.
           }}
         >
           <Button

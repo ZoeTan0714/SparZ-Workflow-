@@ -10,10 +10,13 @@ export const saveWorkflow = (id, payload) => api.patch(`/workflows/${id}`, paylo
 
 export const deleteWorkflow = (id) => api.delete(`/workflows/${id}`);
 
+export const reorderWorkflows = (workflows) => api.patch('/workflows/reorder', { workflows });
+
 export default {
   fetchWorkflows,
   fetchWorkflowById,
   createWorkflow,
   saveWorkflow,
   deleteWorkflow,
+  reorderWorkflows,
 };

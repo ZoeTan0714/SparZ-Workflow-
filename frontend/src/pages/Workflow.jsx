@@ -27,6 +27,8 @@ function Workflow() {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [renameWorkflowId, setRenameWorkflowId] = useState(null);
   const [renameWorkflowName, setRenameWorkflowName] = useState('');
+  const [draggingWorkflowId, setDraggingWorkflowId] = useState(null);
+  const [hoverIndex, setHoverIndex] = useState(null);
 
   const createWorkflow = () => {
     const newWorkflow = {
@@ -42,6 +44,23 @@ function Workflow() {
     setSelectedWorkflowId(newWorkflow.id);
     setNewWorkflowName('');
     setIsCreateDialogOpen(false);
+  };
+
+  const reorderWorkflows = (draggedId, targetIndex) => {
+    const currentIndex = workflows.findIndex((wf) => wf.id === draggedId);
+    if (currentIndex === -1) return;
+    const updated = [...workflows];
+    const [draggedItem] = updated.splice(currentIndex, 1);
+
+    let adjustedTargetIndex = targetIndex;
+    if (currentIndex < targetIndex) {
+      adjustedTargetIndex--;
+    }
+
+    updated.splice(adjustedTargetIndex, 0, draggedItem);
+    setWorkflows(updated);
+
+    return updated;
   };
 
   const handleWorkflowTabContextMenu = (event, workflowId) => {
@@ -137,7 +156,7 @@ function Workflow() {
     handleCloseRenameDialog();
   };
 
-  // load saved workflows from backend on mount
+
   React.useEffect(() => {
     let mounted = true;
     (async () => {
@@ -159,7 +178,7 @@ function Workflow() {
     return () => { mounted = false; };
   }, []);
 
-  // load workflow nodes/edges when selectedWorkflowId changes (if not already loaded)
+  
   React.useEffect(() => {
     if (!selectedWorkflowId) return;
     if (workflowData[selectedWorkflowId]) return;
@@ -209,8 +228,6 @@ function Workflow() {
         setSelectedWorkflowId(savedWorkflow._id);
       } else {
         await saveWorkflow(workflowId, payload);
-        // ensure frontend cache reflects the saved nodes/edges so switching away and back
-        // shows the latest data without requiring a full page refresh
         setWorkflowData((prev) => ({ ...prev, [workflowId]: { nodes: nodes || [], edges: edges || [] } }));
       }
 
@@ -231,15 +248,79 @@ function Workflow() {
     setNewWorkflowName('');
     setIsCreateDialogOpen(false);
   };
+  const handleDragStart = (workflowId) => {
+    setDraggingWorkflowId(workflowId);
+  };
+  
+  const handleDragEnd = () => {
+    setHoverIndex(null);
+    setDraggingWorkflowId(null);
+  };
+
+  const handleDrop = async (e, targetIndexArg) => {
+    e.preventDefault();
+    if (!draggingWorkflowId) return;
+
+    // Normalize targetIndex depending on drop position.
+    let targetIndex = targetIndexArg;
+
+    try {
+      const rect = e.currentTarget && e.currentTarget.getBoundingClientRect && e.currentTarget.getBoundingClientRect();
+      if (rect) {
+        const midpoint = rect.left + rect.width / 2;
+        // If dropped on right half of element, insert after this index
+        if (e.clientX >= midpoint) {
+          targetIndex = (typeof targetIndexArg === 'number') ? targetIndexArg + 1 : targetIndexArg;
+        }
+      }
+    } catch (err) {
+      // ignore and fallback to provided targetIndexArg
+    }
+
+    reorderWorkflows(draggingWorkflowId, targetIndex);
+    setDraggingWorkflowId(null);
+    setHoverIndex(null);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midpoint = rect.left + rect.width / 2;
+
+    if (e.clientX < midpoint) {
+      setHoverIndex(index);
+    } else {
+      setHoverIndex(index + 1);
+    }
+  };
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* workflow selector and create button */}
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mt: 2, position: 'relative' }}>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          {workflows.map((wf) => (
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'nowrap', overflowX: 'auto', whiteSpace: 'nowrap', pr: 12,}}>
+          {workflows.map((wf,index) => (
+            <React.Fragment key={wf.id}>
+
+            {hoverIndex === index && (
+              <Box
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                sx={{
+                  width: '3px',
+                  height: '40px',
+                  bgcolor: 'primary.main',
+                  borderRadius: 1,
+              }}
+              />
+            )}
+            
             <Button
-              key={wf.id}
+              draggable={isAdmin}
+              onDragStart={() => handleDragStart(wf.id)}
+              onDragEnd={handleDragEnd}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDrop={(e) => handleDrop(e, index)}
               variant={wf.id === selectedWorkflowId ? 'contained' : 'outlined'}
               onClick={() => setSelectedWorkflowId(wf.id)}
               onContextMenu={isAdmin ? (event) => handleWorkflowTabContextMenu(event, wf.id) : undefined}
@@ -247,8 +328,23 @@ function Workflow() {
             >
               {wf.name}
             </Button>
+
+            {index === workflows.length - 1 && hoverIndex === workflows.length && (
+              <Box
+                onDragOver={(e) => { e.preventDefault(); setHoverIndex(workflows.length); }}
+                onDrop={(e) => handleDrop(e, workflows.length)}
+                sx={{
+                  width: '3px',
+                  height: '40px',
+                  bgcolor: 'primary.main',
+                  borderRadius: 1,
+                }}
+              />
+            )}
+            </React.Fragment>
           ))}
         </Box>
+
         {isAdmin && (
           <Button
             variant="contained"
@@ -314,7 +410,7 @@ function Workflow() {
         </DialogActions>
       </Dialog>
 
-      {/* canvas */}
+   
       <WorkflowCanvas
         workflowId={selectedWorkflowId}
         workflowData={workflowData}
@@ -324,7 +420,7 @@ function Workflow() {
         isAdmin={isAdmin}
       />
 
-      {/* Create Workflow Dialog */}
+   
       <Dialog open={isCreateDialogOpen} onClose={handleCancelCreate}>
         <DialogTitle>Create New Workflow</DialogTitle>
         <DialogContent>

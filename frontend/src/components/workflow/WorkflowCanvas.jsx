@@ -50,9 +50,7 @@ export default function WorkflowCanvas({ workflowId, workflowData, onSave, isSav
     setEdges(data.edges || []);
   }, [workflowId, workflowData, setEdges, setNodes, deleteNode, updateNodeData, isAdmin]);
 
-  // Local node/edge changes are kept in canvas state until the user clicks Save.
-  // This prevents rerender loops and input flicker caused by syncing every edit back to workflowData.
-
+  
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
