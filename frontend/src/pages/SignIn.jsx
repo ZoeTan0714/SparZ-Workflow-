@@ -12,7 +12,7 @@ import {
   Link,
 } from "@mui/material";
 import forgeLogo from "../assets/sparz.png";
-import loginBg from "../assets/forge_login_background_img.png";
+import loginBg from "../assets/Sparzbg.png";
 
 export default function SignIn() {
   const navigate = useNavigate();
