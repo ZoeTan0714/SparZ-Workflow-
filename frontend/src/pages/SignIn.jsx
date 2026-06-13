@@ -79,7 +79,7 @@ export default function SignIn() {
           Welcome back
         </Typography>
         <Typography variant="body2" color="text.secondary" mb={3}>
-          Sign in to your Forge account
+          Sign in to your SparZ account
         </Typography>
 
         {error && (
