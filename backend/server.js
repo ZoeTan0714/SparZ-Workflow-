@@ -11,6 +11,7 @@ const projectRouter = require("./routes/projectRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const workflowRoutes = require("./routes/workflowRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const contractRoutes = require("./routes/contractRoutes");
 
 mongoose.connect(process.env.MONGODB_URI);
 
@@ -44,6 +45,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/contracts', contractRoutes);
 
 app.listen(3000, () => {
   console.log("The express app is ready!");

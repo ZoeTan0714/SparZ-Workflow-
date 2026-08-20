@@ -30,6 +30,11 @@ const BASE_NAVIGATION = [
     title: "Workflow",
     icon: <WorkIcon />,
   },
+  {
+    segment: "contract",
+    title: "Contract",
+    icon: <WorkIcon />,
+  },
 ];
 
 function CustomToolbarActions() {

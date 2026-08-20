@@ -10,6 +10,7 @@ import { theme } from "./styles/theme";
 import TaskPage from "./pages/TaskPage";
 import Workflow from "./pages/Workflow";
 import Admin from "./pages/Admin";
+import Contract from "./pages/Contract";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
             <Route path="/projects" element={<ProjectSpace />} />
             <Route path="/tasks/:projectId" element={<TaskPage />} />
             <Route path="/workflow" element={<Workflow />} />
+            <Route path="/contract" element={<Contract />} />
             <Route path="/admin" element={<Admin />} />
           </Route>
         </Routes>
